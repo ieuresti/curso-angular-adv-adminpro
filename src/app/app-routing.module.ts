@@ -13,8 +13,8 @@ const routes: Routes = [
 	declarations: [],
 	imports: [
 		RouterModule.forRoot(routes),
-		PagesRoutingModule,
-		AuthRoutingModule
+		PagesRoutingModule, // Rutas(paths) componentes paginas autenticado
+		AuthRoutingModule // Rutas(paths) componentes autenticacion
 	],
 	exports: [
 		RouterModule
