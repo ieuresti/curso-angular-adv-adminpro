@@ -6,11 +6,12 @@ import { Grafica1Component } from './grafica1/grafica1.component';
 import { PagesComponent } from './pages.component';
 import { SharedModule } from '../shared/shared.module';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ComponentsModule } from '../components/components.module';
 import { AccountSettingsComponent } from './account-settings/account-settings.component';
 import { PromesasComponent } from './promesas/promesas.component';
 import { RxjsComponent } from './rxjs/rxjs.component';
+import { PerfilComponent } from './perfil/perfil.component';
 
 @NgModule({
 	declarations: [
@@ -20,7 +21,8 @@ import { RxjsComponent } from './rxjs/rxjs.component';
 		PagesComponent,
 		AccountSettingsComponent,
 		PromesasComponent,
-		RxjsComponent
+		RxjsComponent,
+		PerfilComponent
 	],
 	exports: [
 		DashboardComponent,
@@ -29,11 +31,13 @@ import { RxjsComponent } from './rxjs/rxjs.component';
 		PagesComponent,
 		AccountSettingsComponent,
 		PromesasComponent,
-		RxjsComponent
+		RxjsComponent,
+		PerfilComponent
 	],
 	imports: [
 		FormsModule,
 		CommonModule,
+		ReactiveFormsModule,
 		SharedModule, // Componentes del header, sidebar, breadcrumb
 		RouterModule, // router-outlet funcione
 		ComponentsModule // Modulo de componentes personalizados reutilizables

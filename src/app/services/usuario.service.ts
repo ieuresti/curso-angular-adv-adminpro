@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { RegisterForm } from '../interfaces/register-form.interface';
 import { environment } from 'src/environments/environment';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import { LoginForm } from '../interfaces/login-form.interface';
 import { Router } from '@angular/router';
+import { Usuario } from '../models/usuario.model';
 
 declare const google: any;
 const baseUrl = environment.baseUrl;
@@ -14,26 +15,42 @@ const baseUrl = environment.baseUrl;
 })
 export class UsuarioService {
 
-	constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) { }
+	usuario = new Usuario();
+
+	constructor(private http: HttpClient, private router: Router) {
+		google.accounts.id.initialize({
+			client_id: '1013630041366-71hfr514cmibn2gkbj6o3ca7hfo4r8t3.apps.googleusercontent.com',
+			callback: () => { }
+		});
+	}
+
+	get token(): string {
+		return localStorage.getItem('token') || '';
+	}
+
+	get uid(): string {
+		return this.usuario.uid || '';
+	}
 
 	/**
 	 * Verifica si el token almacenado es válido haciendo una petición al backend
 	 * @returns true si es válido y actualiza el token, caso contrario retorna false
 	 */
 	validarToken(): Observable<boolean> {
-		const token = localStorage.getItem('token') || '';
 		return this.http.get<any>(`${baseUrl}/login/renew`, {
 			headers: {
-				'x-token': token
+				'x-token': this.token
 			}
 			// encadena operadores RxJS para procesar la respuesta del observable
 		}).pipe(
 			// si la petición es exitosa, guarda el nuevo token recibido en la respuesta en el localStorage
-			tap(resp => {
-				localStorage.setItem('token', resp.token)
-			}),
 			// transforma la respuesta para que el observable emita siempre true si la petición fue exitosa
-			map(resp => true),
+			map(resp => {
+				const { email, google, img = '', nombre, role, uid } = resp.usuario;
+				this.usuario = new Usuario({ nombre: nombre, email: email, password: '', img: img, google: google, role: role, uid: uid });
+				localStorage.setItem('token', resp.token);
+				return true;
+			}),
 			// si ocurre un error (ejemplo, el token no es válido), el observable emitirá false
 			catchError(error => of(false))
 		);
@@ -46,6 +63,18 @@ export class UsuarioService {
 				(resp) => { localStorage.setItem('token', resp.token) }
 			)
 		);
+	}
+
+	actualizarPerfil(data: { email: string, nombre: string, role?: string }): Observable<any> {
+		data = {
+			...data,
+			role: this.usuario.role
+		}
+		return this.http.put<any>(`${baseUrl}/usuarios/${this.uid}`, data, {
+			headers: {
+				'x-token': this.token
+			}
+		})
 	}
 
 	login(formData: LoginForm): Observable<any> {
@@ -69,12 +98,13 @@ export class UsuarioService {
 
 	logout() {
 		const email = localStorage.getItem('email') || '';
-		google.accounts.id.revoke(email, () => {
-			this.ngZone.run(() => {
+
+		if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+			google.accounts.id.revoke(email, () => {
 				this.router.navigateByUrl('/login');
-			})
-			localStorage.removeItem('token');
-			localStorage.removeItem('email');
-		})
+				localStorage.removeItem('token');
+				localStorage.removeItem('email');
+			});
+		}
 	}
 }
