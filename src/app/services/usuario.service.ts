@@ -74,7 +74,7 @@ export class UsuarioService {
 			headers: {
 				'x-token': this.token
 			}
-		})
+		});
 	}
 
 	login(formData: LoginForm): Observable<any> {
@@ -106,5 +106,36 @@ export class UsuarioService {
 				localStorage.removeItem('email');
 			});
 		}
+	}
+
+	cargarUsuarios(desde: number = 0): Observable<any> {
+		return this.http.get<any>(`${baseUrl}/usuarios?desde=${desde}`, {
+			headers: {
+				'x-token': this.token
+			}
+		}).pipe(
+			map(resp => {
+				const usuarios = resp.usuarios.map(
+					user => new Usuario({ nombre: user.nombre, email: user.email, password: '', img: user.img, google: user.google, role: user.role, uid: user.uid })
+				);
+				return { usuarios, totalRegistros: resp.totalRegistros };
+			})
+		);
+	}
+
+	guardarUsuario(usuario: Usuario): Observable<any> {
+		return this.http.put<any>(`${baseUrl}/usuarios/${usuario.uid}`, usuario, {
+			headers: {
+				'x-token': this.token
+			}
+		});
+	}
+
+	eliminarUsuario(usuario: Usuario): Observable<any> {
+		return this.http.delete<any>(`${baseUrl}/usuarios/${usuario.uid}`, {
+			headers: {
+				'x-token': this.token
+			}
+		});
 	}
 }

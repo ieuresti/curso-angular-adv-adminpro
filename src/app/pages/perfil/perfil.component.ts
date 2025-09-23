@@ -20,10 +20,10 @@ export class PerfilComponent implements OnInit {
 
 	constructor(
 		private fb: FormBuilder,
-		private usurioService: UsuarioService,
+		private usuarioService: UsuarioService,
 		private fileUploadService: FileUploadService
 	) {
-		this.usuario = this.usurioService.usuario;
+		this.usuario = this.usuarioService.usuario;
 		this.perfilForm = this.fb.group({
 			nombre: [this.usuario.nombre, Validators.required],
 			email: [this.usuario.email, [Validators.required, Validators.email]]
@@ -41,7 +41,7 @@ export class PerfilComponent implements OnInit {
 			email: this.perfilForm.get('email').value,
 			nombre: this.perfilForm.get('nombre').value
 		}
-		this.usurioService.actualizarPerfil(data).subscribe({
+		this.usuarioService.actualizarPerfil(data).subscribe({
 			next: () => {
 				Swal.fire({
 					title: 'Guardado!',
