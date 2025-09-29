@@ -55,4 +55,12 @@ export class BusquedasService {
 			})
 		);
 	}
+
+	busquedaGlobal(termino: string): Observable<any> {
+		return this.http.get<any>(`${baseUrl}/todo/${termino}`, {
+			headers: {
+				'x-token': this.token
+			}
+		});
+	}
 }

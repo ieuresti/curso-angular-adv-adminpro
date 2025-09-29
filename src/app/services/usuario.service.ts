@@ -32,6 +32,15 @@ export class UsuarioService {
 		return this.usuario.uid || '';
 	}
 
+	get role(): string {
+		return this.usuario.role;
+	}
+
+	guardarLocalStorage(token: string, menu) {
+		localStorage.setItem('token', token);
+		localStorage.setItem('menu', JSON.stringify(menu));
+	}
+
 	/**
 	 * Verifica si el token almacenado es válido haciendo una petición al backend
 	 * @returns true si es válido y actualiza el token, caso contrario retorna false
@@ -48,7 +57,7 @@ export class UsuarioService {
 			map(resp => {
 				const { email, google, img = '', nombre, role, uid } = resp.usuario;
 				this.usuario = new Usuario({ nombre: nombre, email: email, password: '', img: img, google: google, role: role, uid: uid });
-				localStorage.setItem('token', resp.token);
+				this.guardarLocalStorage(resp.token, resp.menu);
 				return true;
 			}),
 			// si ocurre un error (ejemplo, el token no es válido), el observable emitirá false
@@ -60,7 +69,9 @@ export class UsuarioService {
 		return this.http.post<any>(`${baseUrl}/usuarios`, formData).pipe(
 			// permite ejecutar efectos secundarios (side effects) en una secuencia de observables (Ejecutar acciones que no afectan el flujo de datos)
 			tap(
-				(resp) => { localStorage.setItem('token', resp.token) }
+				(resp) => {
+					this.guardarLocalStorage(resp.token, resp.menu);
+				}
 			)
 		);
 	}
@@ -80,7 +91,9 @@ export class UsuarioService {
 	login(formData: LoginForm): Observable<any> {
 		return this.http.post<any>(`${baseUrl}/login`, formData).pipe(
 			tap(
-				(resp) => { localStorage.setItem('token', resp.token) }
+				(resp) => {
+					this.guardarLocalStorage(resp.token, resp.menu);
+				}
 			)
 		);
 	}
@@ -89,8 +102,8 @@ export class UsuarioService {
 		return this.http.post<any>(`${baseUrl}/login/google`, { token }).pipe(
 			tap(
 				(resp) => {
-					localStorage.setItem('token', resp.token),
-					localStorage.setItem('email', resp.email)
+					localStorage.setItem('email', resp.email);
+					this.guardarLocalStorage(resp.token, resp.menu);
 				}
 			)
 		);
@@ -98,6 +111,8 @@ export class UsuarioService {
 
 	logout() {
 		const email = localStorage.getItem('email') || '';
+
+		localStorage.removeItem('menu');
 
 		if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
 			google.accounts.id.revoke(email, () => {
